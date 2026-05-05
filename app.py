@@ -42,7 +42,7 @@ def create_app():
             'current_user': current_user
         }
 
-    # Import des routes
+    # Import routes
     from routes.auth import auth_bp
     from routes.membres import membres_bp
     from routes.abonnements import abonnements_bp
@@ -50,7 +50,6 @@ def create_app():
     from routes.caisse import caisse_bp
     from routes.utilisateurs import utilisateurs_bp
 
-    # Enregistrement des blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(membres_bp)
     app.register_blueprint(abonnements_bp)
@@ -58,16 +57,19 @@ def create_app():
     app.register_blueprint(caisse_bp)
     app.register_blueprint(utilisateurs_bp)
 
-    # 🔥 INITIALISATION BASE + ADMIN
+    # 🔥 INIT DB + ADMIN COMPATIBLE AVEC TON LOGIN
     from werkzeug.security import generate_password_hash
 
     with app.app_context():
         db.create_all()
 
-        # Création d'un admin par défaut (si inexistant)
-        if not Admin.query.filter_by(username="admin").first():
+        # Création admin si inexistant
+        if not Admin.query.filter_by(email="admin@gmail.com").first():
             admin = Admin(
-                username="admin",
+                email="admin@gmail.com",
+                nom="Admin",
+                actif=True,
+                est_membre=False,
                 password=generate_password_hash("admin123")
             )
             db.session.add(admin)
