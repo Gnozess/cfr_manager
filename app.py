@@ -3,6 +3,13 @@ from config import Config
 from extensions import db, login_manager
 import os
 
+# Charger .env en local uniquement
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 def create_app():
     app = Flask(__name__)
 
@@ -63,31 +70,47 @@ def create_app():
     app.register_blueprint(caisse_bp)
     app.register_blueprint(utilisateurs_bp)
 
-    # 🔥 INIT DB + ADMIN CORRIGÉ
+    # Init DB
     with app.app_context():
         db.create_all()
 
         try:
-            admin = Admin.query.filter_by(email="admin@gmail.com").first()
-
-            if not admin:
+            # Créer l'admin par défaut
+            if not Admin.query.filter_by(email='admin@gmail.com').first():
                 admin = Admin(
-                    nom="Administrateur",
-                    email="admin@gmail.com",
-                    role="admin",
+                    nom='Administrateur',
+                    email='admin@gmail.com',
+                    role='admin',
                     actif=True
                 )
-                admin.set_password("admin123")  # ✅ TRÈS IMPORTANT
-
+                admin.set_password('admin123')
                 db.session.add(admin)
                 db.session.commit()
+                print('✅ Admin cree')
+
+            # Initialiser les prix journaliers
+            from models.config import Config as GymConfig
+            if not GymConfig.query.filter_by(cle='journalier_simple').first():
+                db.session.add(GymConfig(
+                    cle='journalier_simple',
+                    valeur=2000,
+                    description='Prix journalier salle ou fitness'
+                ))
+            if not GymConfig.query.filter_by(cle='journalier_complet').first():
+                db.session.add(GymConfig(
+                    cle='journalier_complet',
+                    valeur=3000,
+                    description='Prix journalier salle + fitness'
+                ))
+            db.session.commit()
+            print('✅ Configuration initialisee')
 
         except Exception as e:
-            print("Erreur création admin :", e)
+            print(f'Erreur initialisation : {e}')
 
     return app
 
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=False)
+    app.run(debug=True)
