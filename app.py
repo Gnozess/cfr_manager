@@ -2,6 +2,7 @@ from flask import Flask
 from config import Config
 from extensions import db, login_manager
 import os
+from datetime import timedelta
 
 # Charger .env en local uniquement
 try:
@@ -9,6 +10,7 @@ try:
     load_dotenv()
 except ImportError:
     pass
+
 
 def create_app():
     app = Flask(__name__)
@@ -21,9 +23,19 @@ def create_app():
 
     app.config.from_object(Config)
 
+    # Configuration des sessions
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Veuillez vous connecter pour acceder a cette page.'
+    login_manager.login_message_category = 'warning'
+    login_manager.refresh_view = 'auth.login'
+    login_manager.needs_refresh_message = 'Session expiree. Veuillez vous reconnecter.'
+    login_manager.needs_refresh_message_category = 'warning'
 
     from models.admin import Admin
 
@@ -75,7 +87,6 @@ def create_app():
         db.create_all()
 
         try:
-            # Créer l'admin par défaut
             if not Admin.query.filter_by(email='admin@gmail.com').first():
                 admin = Admin(
                     nom='Administrateur',
@@ -86,9 +97,8 @@ def create_app():
                 admin.set_password('admin123')
                 db.session.add(admin)
                 db.session.commit()
-                print('✅ Admin cree')
+                print('[OK] Admin cree')
 
-            # Initialiser les prix journaliers
             from models.config import Config as GymConfig
             if not GymConfig.query.filter_by(cle='journalier_simple').first():
                 db.session.add(GymConfig(
@@ -103,7 +113,7 @@ def create_app():
                     description='Prix journalier salle + fitness'
                 ))
             db.session.commit()
-            print('✅ Configuration initialisee')
+            print('[OK] Configuration initialisee')
 
         except Exception as e:
             print(f'Erreur initialisation : {e}')

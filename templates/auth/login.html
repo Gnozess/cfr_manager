@@ -1,29 +1,53 @@
 {% extends 'base.html' %}
-{% block title %}Connexion — Gym Manager{% endblock %}
+{% block title %}Connexion - Gym Manager{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4">
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <h2 class="text-center mb-4"> <img src="{{ url_for('static', filename='logo.jpeg') }}"
-                    style="height: 35px; width: 35px; border-radius: 50%; object-fit: cover;">
-                    CFR-Raguilio
-                </h2>
-                <h5 class="text-center text-muted mb-4">CONNECTEZ-VOUS</h5>
+<style>
+.login-page {
+    min-height: calc(100vh - 3rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
 
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mot de passe</label>
-                        <input type="password" name="mot_de_passe" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-dark w-100">Se connecter</button>
-                </form>
-            </div>
+.login-card {
+    width: min(100%, 420px);
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+}
+
+.login-logo {
+    height: 42px;
+    width: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+</style>
+
+<div class="login-page">
+    <div class="card shadow-lg login-card">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4">
+                <img src="{{ url_for('static', filename='logo.jpeg') }}"
+                     class="login-logo"
+                     alt="Logo">
+                CFR-Raguilio
+            </h2>
+            <h5 class="text-center text-muted mb-4">CONNECTEZ-VOUS</h5>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mot de passe</label>
+                    <input type="password" name="mot_de_passe" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">Se connecter</button>
+            </form>
         </div>
     </div>
 </div>

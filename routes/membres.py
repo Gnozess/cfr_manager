@@ -23,13 +23,18 @@ def valider_telephone(telephone):
 
 
 @membres_bp.route('/')
+@login_required
 def index():
+    # Rediriger selon le profil des la racine
+    if current_user.est_membre:
+        return redirect(url_for('abonnements.liste'))
     return redirect(url_for('membres.dashboard'))
 
 
 @membres_bp.route('/dashboard')
 @login_required
 def dashboard():
+    # Rediriger le membre sans passer par dashboard
     if current_user.est_membre:
         return redirect(url_for('abonnements.liste'))
 
@@ -47,7 +52,6 @@ def dashboard():
         Abonnement.date_fin <= date.fromordinal(date.today().toordinal() + 7)
     ).all()
 
-    # Données histogramme — abonnés par mois pour l'année choisie
     resultats = db.session.query(
         extract('month', Abonnement.date_debut).label('mois'),
         func.count(Abonnement.id).label('total')
@@ -56,12 +60,10 @@ def dashboard():
         Abonnement.type_abonnement == 'forfait'
     ).group_by('mois').order_by('mois').all()
 
-    # Initialiser 12 mois à 0
     donnees_mois = [0] * 12
     for r in resultats:
         donnees_mois[int(r.mois) - 1] = r.total
 
-    # Années disponibles pour le filtre
     annees = db.session.query(
         extract('year', Abonnement.date_debut).label('annee')
     ).distinct().order_by('annee').all()

@@ -10,65 +10,84 @@
 <body>
 
 {% if current_user.is_authenticated %}
-<nav class="navbar navbar-dark bg-dark px-4">
-    <span class="navbar-brand fw-bold d-flex align-items-center gap-2">
-        <img src="{{ url_for('static', filename='logo.jpeg') }}"
-             style="height: 35px; width: 35px; border-radius: 50%; object-fit: cover;">
-        Centre de Fitness Raguilio
-    </span>
-    <div class="d-flex gap-3 align-items-center">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 px-lg-4">
+    <div class="container-fluid px-0">
+        <span class="navbar-brand fw-bold d-flex align-items-center gap-2 mb-0">
+            <img src="{{ url_for('static', filename='logo.jpeg') }}"
+                 class="navbar-logo"
+                 alt="Logo">
+            Centre de Fitness Raguilio
+        </span>
 
-        {% if not current_user.est_membre %}
-        <!-- Menus admin et secretaire uniquement -->
-        <a href="{{ url_for('membres.dashboard') }}"
-           class="text-white text-decoration-none">DASHBOARD</a>
-        <a href="{{ url_for('membres.liste') }}"
-           class="text-white text-decoration-none">MEMBRES</a>
-        <a href="{{ url_for('abonnements.liste') }}"
-           class="text-white text-decoration-none">ABONNEMENTS</a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarMain"
+                aria-controls="navbarMain"
+                aria-expanded="false"
+                aria-label="Ouvrir le menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        {% if current_user.est_admin %}
-        <a href="{{ url_for('forfaits.liste') }}"
-           class="text-white text-decoration-none">FORFAITS</a>
-        <a href="{{ url_for('caisse.index') }}"
-           class="text-white text-decoration-none">CAISSE</a>
-        <a href="{{ url_for('utilisateurs.liste') }}"
-           class="text-white text-decoration-none">UTILISATEURS</a>
-        {% endif %}
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <div class="navbar-nav ms-lg-auto gap-lg-2 align-items-lg-center">
 
-        {% if alertes_count > 0 %}
-        <a href="{{ url_for('membres.dashboard') }}" class="text-decoration-none">
-            <span class="badge bg-warning text-dark">
-                ⚠️ {{ alertes_count }} expiration(s)
-            </span>
-        </a>
-        {% endif %}
-        {% endif %}
+                {% if not current_user.est_membre %}
+                <!-- Menus admin et secretaire uniquement -->
+                <a href="{{ url_for('membres.dashboard') }}"
+                   class="nav-link text-white">DASHBOARD</a>
+                <a href="{{ url_for('membres.liste') }}"
+                   class="nav-link text-white">MEMBRES</a>
+                <a href="{{ url_for('abonnements.liste') }}"
+                   class="nav-link text-white">ABONNEMENTS</a>
+                <a href="{{ url_for('abonnements.controle_acces') }}"
+                   class="nav-link text-white">
+                    CONTROLE ACCES
+                </a>
 
-        <!-- Menu utilisateur visible par tous -->
-        <div class="dropdown">
-            <a class="text-white text-decoration-none dropdown-toggle" href="#"
-               data-bs-toggle="dropdown">
-                {{ current_user.nom }}-{{ current_user.prenom }}
-                <span class="badge bg-secondary">{{ current_user.role_label }}</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item"
-                       href="{{ url_for('auth.changer_mot_de_passe') }}">
-                        🔒 Changer mot de passe
+                {% if current_user.est_admin %}
+                <a href="{{ url_for('forfaits.liste') }}"
+                   class="nav-link text-white">FORFAITS</a>
+                <a href="{{ url_for('caisse.index') }}"
+                   class="nav-link text-white">CAISSE</a>
+                <a href="{{ url_for('utilisateurs.liste') }}"
+                   class="nav-link text-white">UTILISATEURS</a>
+                {% endif %}
+
+                {% if alertes_count > 0 %}
+                <a href="{{ url_for('membres.dashboard') }}" class="nav-link text-decoration-none">
+                    <span class="badge bg-warning text-dark">
+                        {{ alertes_count }} expiration(s)
+                    </span>
+                </a>
+                {% endif %}
+                {% endif %}
+
+                <!-- Menu utilisateur visible par tous -->
+                <div class="dropdown user-menu">
+                    <a class="nav-link text-white dropdown-toggle" href="#"
+                       data-bs-toggle="dropdown">
+                        {{ current_user.nom }}-{{ current_user.prenom }}
+                        <span class="badge bg-secondary">{{ current_user.role_label }}</span>
                     </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item text-danger"
-                       href="{{ url_for('auth.logout') }}">
-                        Deconnexion
-                    </a>
-                </li>
-            </ul>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item"
+                               href="{{ url_for('auth.changer_mot_de_passe') }}">
+                                Changer mot de passe
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger"
+                               href="{{ url_for('auth.logout') }}">
+                                Deconnexion
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
         </div>
-
     </div>
 </nav>
 {% endif %}
@@ -87,5 +106,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('table.table').forEach(function(table) {
+        if (!table.parentElement.classList.contains('table-responsive')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'table-responsive';
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+        }
+    });
+});
+</script>
 </body>
 </html>

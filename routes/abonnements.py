@@ -470,10 +470,10 @@ def annuler(id):
             membre_id=membre.id
         )
         db.session.add(sortie)
-   
+
     db.session.commit()
 
-# SMS notification annulation
+    # SMS notification annulation
     try:
         forfait_nom = abonnement.forfait.nom if abonnement.forfait else 'Forfait'
         sms_annulation(membre, forfait_nom, montant_rembourse)
@@ -492,14 +492,72 @@ def annuler(id):
 
     return redirect(url_for('abonnements.liste'))
 
-    if montant_rembourse > 0:
-        flash(
-            f'Abonnement annule. Remboursement total de '
-            f'{montant_rembourse:,.0f} FCFA deduit de la caisse '
-            f'par mode de paiement.',
-            'warning'
-        )
-    else:
-        flash('Abonnement annule. Aucun remboursement effectue.', 'warning')
+@abonnements_bp.route('/controle-acces')
+@login_required
+def controle_acces():
+    return render_template('abonnements/controle_acces.html')
 
-    return redirect(url_for('abonnements.liste'))
+
+@abonnements_bp.route('/controle-acces/verifier', methods=['POST'])
+@login_required
+def verifier_acces():
+    data_qr = request.form.get('qr_data', '').strip()
+
+    if not data_qr:
+        return jsonify({'statut': 'erreur', 'message': 'QR code vide'})
+
+    # Extraire l'ID abonnement du QR code
+    # Format : "CF-RAGUILIO\nN: 00001\n..."
+    try:
+        lignes = data_qr.split('\n')
+        id_ligne = [l for l in lignes if l.startswith('N:')]
+        if not id_ligne:
+            return jsonify({'statut': 'erreur', 'message': 'QR code invalide'})
+
+        abonnement_id = int(id_ligne[0].replace('N:', '').strip())
+        abonnement = Abonnement.query.get(abonnement_id)
+
+        if not abonnement:
+            return jsonify({
+                'statut': 'refuse',
+                'message': 'Abonnement introuvable',
+                'couleur': 'danger'
+            })
+
+        membre = abonnement.membre
+
+        if abonnement.statut == 'annule':
+            return jsonify({
+                'statut': 'refuse',
+                'message': f'{membre.prenom} {membre.nom} - Abonnement annule',
+                'couleur': 'danger'
+            })
+
+        if abonnement.est_expire:
+            return jsonify({
+                'statut': 'refuse',
+                'message': f'{membre.prenom} {membre.nom} - Abonnement expire le {abonnement.date_fin.strftime("%d/%m/%Y")}',
+                'couleur': 'danger'
+            })
+
+        if not abonnement.est_solde:
+            return jsonify({
+                'statut': 'attention',
+                'message': f'{membre.prenom} {membre.nom} - Reste a payer : {abonnement.reste_a_payer:,.0f} FCFA',
+                'couleur': 'warning'
+            })
+
+        return jsonify({
+            'statut': 'autorise',
+            'message': f'Bienvenue {membre.prenom} {membre.nom} !',
+            'details': f'{abonnement.forfait.nom if abonnement.forfait else "Journalier"} - Valide jusqu\'au {abonnement.date_fin.strftime("%d/%m/%Y")}',
+            'couleur': 'success',
+            'jours_restants': abonnement.jours_restants
+        })
+
+    except Exception as e:
+        return jsonify({
+            'statut': 'erreur',
+            'message': f'Erreur : {str(e)}',
+            'couleur': 'danger'
+        })
